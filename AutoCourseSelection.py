@@ -1,7 +1,8 @@
 import tkinter as tk
 import requests
+import time
 import re
-import threading
+#import threading #本来还想多线程？想多了
 from bs4 import BeautifulSoup
 
 RC = []
@@ -134,6 +135,7 @@ def login():
 
 def start():
     #模拟登录
+    #还得改
     username = usernameInput.get()
     password = passwordInput.get()
     session = requests.Session()
@@ -156,10 +158,20 @@ def start():
     if searchusername == None:
         tk.Label(window,text="登陆失败").place(x=100,y=200)
     else:
-        tk.Label(window,text="登录成功").place(x=100,y=200)
+        tk.Label(window,text="登录成功").place(x=100,y=200)    
     #刷新网页
-        #还没写
-        #tk.Label(window,text="系统开放").place(x=100,y=200)
+    ifreopen = True
+    ifopen = "当前不在选课时间范围内，具体请查看学校选课通知！"
+    while ifreopen:
+        alltext = session.get('http://jwxt.sustc.edu.cn/jsxsd/xsxk/xsxk_index?jx0502zbid=D102885918754CD79C2E3F167A288A11', headers=headers)
+        newsoup = BeautifulSoup(alltext.content,"html.parser")
+        center = newsoup.find("center").text
+        if center == ifopen:
+            time.sleep(0.1)  #刷新休眠时间，懒得加个调整框了，单位为秒
+            print("系统还没开放！")
+        else:
+            ifreopen = False
+            tk.Label(window,text="系统开放").place(x=100,y=200)
     #正式抢课
     session.get('http://jwxt.sustc.edu.cn/jsxsd/xsxk/xsxk_index?jx0502zbid=D102885918754CD79C2E3F167A288A11', headers=headers) #选课系统登录
     params = {'jx0404id':'','xkzy':'','trjf':''}
@@ -198,6 +210,7 @@ def start():
         tk.Label(window,text=r).place(x=0,y=i)
         i += 25
 
+#窗体创建区域，写的很烂就直接扔外面了
 window = tk.Tk()
 window.geometry('900x700')
 tk.Label(window, text='学号').place(x=50,y=50)
@@ -278,6 +291,6 @@ filemenu.add_command(label='Open')
 filemenu.add_command(label='Save')
 filemenu.add_separator()
 filemenu.add_command(label='Exit', command=window.quit)
-window.title("很垃圾的抢课脚本beta")
+window.title("很垃圾的抢课脚本")
 #window.iconbitmap("")改图标
 window.mainloop()
